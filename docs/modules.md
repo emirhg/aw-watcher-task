@@ -24,14 +24,17 @@ flowchart TD
 flowchart TD
     main[main.rs] --> config[config.rs]
     main --> providers[providers.rs]
+    main --> connectivity[connectivity.rs]
     main --> activitywatch[activitywatch.rs]
     main --> log[log.rs]
     providers --> config
     providers --> log
+    providers --> connectivity
     providers --> core[aw-taskwarrior-core]
     activitywatch --> config
     activitywatch --> log
     activitywatch --> core
+    connectivity --> log
 ```
 
 `config` and `log` do not depend on other project modules.
@@ -98,7 +101,7 @@ flowchart TD
 **Responsibility:** entry point. Loads config, builds the provider, installs the shutdown handler, creates the ActivityWatch client, and runs the poll loop.
 
 - Private functions: `main`, `sleep_with_shutdown_check(Duration, &Arc<AtomicBool>)`.
-- Uses: `config::load`, `providers::build`, `providers::resolve_task`, `activitywatch::AwTaskWatcherClient`, `activitywatch::select_pulsetime`, `activitywatch::heartbeat_task`, `ActiveTask::default_task`, `log::*`.
+- Uses: `config::load`, `providers::build`, `providers::resolve_task`, `activitywatch::AwTaskWatcherClient`, `activitywatch::select_pulsetime`, `activitywatch::heartbeat_task`, `connectivity::LinkMonitor`, `connectivity::observe`, `ActiveTask::default_task`, `log::*`.
 - Startup order: config, provider (fails fast, before any network I/O), signal handler, ActivityWatch client, bucket.
 - Tests: none.
 
@@ -129,7 +132,7 @@ flowchart TD
 | Item | Kind | Notes |
 |------|------|-------|
 | `build(&Config)` | fn | Matches `cfg.provider`. Each provider is one `cfg(feature)` arm. An unknown or not-compiled name gives `Err("provider '<name>' is not available; rebuild with the matching feature")`. |
-| `resolve_task(&dyn TaskProvider, &mut ActiveTask)` | fn | On success, updates `last_known` and returns the task. On error, logs it and returns `last_known`. |
+| `resolve_task(&dyn TaskProvider, &mut ActiveTask, &mut LinkMonitor)` | fn | On success, updates `last_known`, returns the task, and reports success to the monitor. On error, reports the failure to the monitor (state transition logging, REQ-016) and returns `last_known`. No per-poll error line. |
 
 - `build()` also has an `http` arm (feature `provider-http`) that passes `[aw-taskwarrior.providers.http]` to `aw_taskwarrior_provider_http::create`.
 - Tests (6): success updates last known, failure returns last known, failure before any success returns the default, unknown provider is an error, `http` without settings names `base_url`, default provider builds `cli`.
@@ -149,6 +152,23 @@ flowchart TD
 | `heartbeat_task(&ActiveTask, &Config)` | fn | `None` when the task is `default_task()` and `no_task_title` is empty after trimming (no heartbeat). For `default_task()` with a title set, returns the task with that title. Any other task is returned unchanged. (REQ-015) |
 
 - Tests (3): offline tag present, absent, custom tag name.
+
+### connectivity.rs
+
+**Responsibility:** tracks one link (task source or aw-server) as `Unknown`, `Up` or `Down`, and logs only the transitions (REQ-016). The state logic takes `now` as a parameter, so tests need no real clock.
+
+| Item | Kind | Notes |
+|------|------|-------|
+| `Link` | enum | `Provider(&'static str)` for the task source (its provider name), `AwServer` for aw-server. |
+| `LinkMonitor` | struct | Holds the `Link` and the state. `new(Link)` starts in `Unknown`. |
+| `Transition` | enum | `Lost { error }` on the first failure after `Up` or `Unknown`; `Recovered { down_for, failed_polls }` on the first success after `Down`. |
+| `LinkMonitor::record_ok(now)` / `record_err(error, now)` | fn | Update the state and return `Some(Transition)` only when the state changes. |
+| `describe(Link, &Transition)` | fn | Builds the log message for a transition. Error text is put on one line. |
+| `format_duration(chrono::Duration)` | fn | `1h 02m 03s`, `4m 05s`, `12s`. |
+| `observe(&mut LinkMonitor, Result<(), &str>)` | fn | Reads `Utc::now()`, calls the monitor, and writes `Lost` with `log_error` and `Recovered` with `log_info`. |
+
+- Private types: `State` (`Unknown`, `Up`, `Down { since, failed_polls }`).
+- Tests (planned): first failure, repeated failures counted, recovery with duration and count, silent `Unknown` and `Up` successes, new outage after recovery, `describe` for both links, multi-line error kept on one line, `format_duration`, links independent.
 
 ### log.rs
 

@@ -69,7 +69,7 @@ sequenceDiagram
             P->>P: last_known_task = task
         else spawn, timeout (default 5s), non-zero exit, bad JSON
             T-->>P: ProviderError
-            P->>P: log error, reuse last_known_task
+            P->>P: report failure to task-source LinkMonitor, reuse last_known_task
         end
         P-->>M: ActiveTask
         M->>M: heartbeat_task(task, cfg)
@@ -78,7 +78,7 @@ sequenceDiagram
             M->>A: send_heartbeat(task, pulsetime)
             A->>S: heartbeat(bucket, event, pulsetime)
             S-->>A: ok or error
-            A-->>M: Result (error is logged, loop continues)
+            A-->>M: Result (reported to aw-server LinkMonitor, loop continues)
         else None (idle and no_task_title empty)
             M->>M: no heartbeat, log idle once
         end
@@ -91,6 +91,23 @@ Key rules:
 - With no active task, no heartbeat is sent by default, so the idle time shows as a gap. If `no_task_title` is set in `aw-taskwarrior.toml` (non-empty after trimming), the heartbeat carries that title instead (REQ-015).
 - Pulsetime depends on the task's tags. A task with the offline tag gets the long pulsetime (12 h by default), so a suspend does not split its span. Other tasks get 120 s.
 - Empty values are omitted from the heartbeat data: project, tags and uuid are left out when empty or absent.
+
+## Connectivity logging (REQ-016)
+
+Each link has a state: `Unknown` at start, then `Up` or `Down`. Only transitions are logged.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Unknown
+    Unknown --> Down: failure (log lost)
+    Unknown --> Up: success (silent)
+    Up --> Up: success (silent)
+    Up --> Down: failure (log lost)
+    Down --> Down: failure (silent)
+    Down --> Up: success (log recovered, duration)
+```
+
+The two links are `task provider '<name>'` and `ActivityWatch server`. Both use the wall clock, so the outage length includes time asleep.
 
 ## Shutdown
 
@@ -108,11 +125,11 @@ Shutdown is also honored during startup retries and during the sleep between pol
 
 | Failure | Behavior |
 |---------|----------|
-| Provider error (for `cli`: `task` missing, timed out, non-zero exit, or invalid JSON) | Log error, reuse last known task |
+| Provider error (for `cli`: `task` missing, timed out, non-zero exit, or invalid JSON; for `http`: unreachable, timeout, auth rejected) | Log once when the link goes down, log once with the outage length when it recovers, reuse last known task (REQ-016) |
 | Unknown or not compiled-in provider name | Fatal at startup, exit 1 |
 | Invalid provider settings (e.g. `timeout_seconds = 0`) | Fatal at startup, exit 1 |
 | ActivityWatch unreachable at startup | Log error, retry every 30 s until reachable or shutdown |
-| Heartbeat fails | Log error, next poll sends again |
+| Heartbeat fails (transport error) | Log once when aw-server goes down, log once with the outage length on recovery; next poll sends again (REQ-016) |
 | `aw-client.toml` or `aw-taskwarrior.toml` unreadable or malformed, or an unknown key in `[aw-taskwarrior]` | Fatal, exit 1; the message names the file |
 | Either config file missing | Use built-in defaults |
 
