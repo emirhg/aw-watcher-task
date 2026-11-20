@@ -19,6 +19,6 @@ Each requirement has its own file, written from [_template.md](_template.md). Wr
 | [REQ-013](REQ-013-http-provider-hardening.md) | HTTP provider hardening against task-rest | Implemented |
 | [REQ-014](REQ-014-config-location-and-first-run.md) | Windows config location and first-run config file | Implemented |
 | [REQ-015](REQ-015-idle-task-title.md) | Configurable title for idle periods, empty by default (no heartbeat) | Implemented |
-| [REQ-016](REQ-016-connectivity-logging.md) | Log connectivity state transitions for the task source and aw-server | Documented, not implemented |
+| [REQ-016](REQ-016-connectivity-logging.md) | Log connectivity state transitions for the task source and aw-server | Implemented |
 
 Status is mirrored in [../STATUS.md](../STATUS.md).

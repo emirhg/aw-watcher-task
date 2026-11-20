@@ -1,9 +1,11 @@
 mod activitywatch;
 mod config;
+mod connectivity;
 mod log;
 mod providers;
 
 use aw_taskwarrior_core::ActiveTask;
+use connectivity::{Link, LinkMonitor};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
@@ -63,11 +65,18 @@ fn main() {
     let mut last_known_task = ActiveTask::default_task();
     // Set while idle so the "no task" line is logged once, not on every poll (REQ-015)
     let mut idle_logged = false;
+    // One monitor per link; each logs only its state transitions (REQ-016)
+    let mut provider_monitor = LinkMonitor::new(Link::Provider(provider.name()));
+    let mut server_monitor = LinkMonitor::new(Link::AwServer);
 
     // Main poll loop
     while !shutdown.load(Ordering::SeqCst) {
         // Ask the provider for the active task; falls back to the last known task on failure
-        let task = providers::resolve_task(provider.as_ref(), &mut last_known_task);
+        let task = providers::resolve_task(
+            provider.as_ref(),
+            &mut last_known_task,
+            &mut provider_monitor,
+        );
 
         // Decide what to send: None while idle with no no_task_title (REQ-015)
         match activitywatch::heartbeat_task(&task, &cfg) {
@@ -77,8 +86,9 @@ fn main() {
                 let pulsetime = activitywatch::select_pulsetime(&to_send, &cfg);
 
                 // Send heartbeat to ActivityWatch
-                if let Err(e) = aw_client.send_heartbeat(&to_send, pulsetime) {
-                    log::log_error(&e);
+                match aw_client.send_heartbeat(&to_send, pulsetime) {
+                    Ok(()) => connectivity::observe(&mut server_monitor, Ok(())),
+                    Err(e) => connectivity::observe(&mut server_monitor, Err(e.as_str())),
                 }
             }
             None => {

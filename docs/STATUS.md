@@ -26,7 +26,7 @@ Rules:
 | REQ-013 | HTTP provider hardening against task-rest | Implemented | Implemented | In sync |
 | REQ-014 | Windows config location and first-run config file | Implemented | Implemented | In sync |
 | REQ-015 | Configurable title for idle periods, empty by default | Implemented | Implemented | In sync |
-| REQ-016 | Log connectivity state transitions for the task source and aw-server | Documented | Not implemented | Docs ahead |
+| REQ-016 | Log connectivity state transitions for the task source and aw-server | Implemented | Implemented | In sync |
 
 ## Known code issues (not requirements)
 

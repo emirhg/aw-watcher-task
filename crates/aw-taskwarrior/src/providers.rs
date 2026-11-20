@@ -4,7 +4,7 @@
 //! Adding a provider means a new crate, a new feature, and one `cfg` arm in `build`.
 
 use crate::config::Config;
-use crate::log;
+use crate::connectivity::{self, LinkMonitor};
 use aw_taskwarrior_core::{ActiveTask, TaskProvider};
 
 /// Builds the provider named by `cfg.provider`.
@@ -35,20 +35,22 @@ pub fn build(cfg: &Config) -> Result<Box<dyn TaskProvider>, String> {
     }
 }
 
-/// Returns the task from `provider`. On failure, logs the error and returns `last_known`.
-/// A successful read replaces `last_known`.
-pub fn resolve_task(provider: &dyn TaskProvider, last_known: &mut ActiveTask) -> ActiveTask {
+/// Returns the task from `provider`. On failure, returns `last_known`.
+/// A successful read replaces `last_known`. Either outcome is reported to `monitor`, which
+/// logs only the state transitions (REQ-016).
+pub fn resolve_task(
+    provider: &dyn TaskProvider,
+    last_known: &mut ActiveTask,
+    monitor: &mut LinkMonitor,
+) -> ActiveTask {
     match provider.active_task() {
         Ok(task) => {
             *last_known = task.clone();
+            connectivity::observe(monitor, Ok(()));
             task
         }
         Err(e) => {
-            log::log_error(&format!(
-                "task provider '{}' failed, reusing last known task: {}",
-                provider.name(),
-                e
-            ));
+            connectivity::observe(monitor, Err(e.to_string().as_str()));
             last_known.clone()
         }
     }
@@ -57,6 +59,7 @@ pub fn resolve_task(provider: &dyn TaskProvider, last_known: &mut ActiveTask) ->
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::connectivity::Link;
     use aw_taskwarrior_core::ProviderError;
 
     /// Test provider: returns the task it holds, or an error when it holds none.
@@ -92,7 +95,11 @@ mod tests {
         };
         let mut last = ActiveTask::default_task();
 
-        let result = resolve_task(&stub, &mut last);
+        let result = resolve_task(
+            &stub,
+            &mut last,
+            &mut LinkMonitor::new(Link::Provider("stub")),
+        );
 
         assert_eq!(result, task("fresh"));
         assert_eq!(last, task("fresh"));
@@ -103,7 +110,11 @@ mod tests {
         let stub = Stub { task: None };
         let mut last = task("previous");
 
-        let result = resolve_task(&stub, &mut last);
+        let result = resolve_task(
+            &stub,
+            &mut last,
+            &mut LinkMonitor::new(Link::Provider("stub")),
+        );
 
         assert_eq!(result, task("previous"));
         assert_eq!(last, task("previous"));
@@ -114,7 +125,11 @@ mod tests {
         let stub = Stub { task: None };
         let mut last = ActiveTask::default_task();
 
-        let result = resolve_task(&stub, &mut last);
+        let result = resolve_task(
+            &stub,
+            &mut last,
+            &mut LinkMonitor::new(Link::Provider("stub")),
+        );
 
         assert_eq!(result, ActiveTask::default_task());
     }

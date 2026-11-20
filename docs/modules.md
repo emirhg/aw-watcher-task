@@ -168,7 +168,7 @@ flowchart TD
 | `observe(&mut LinkMonitor, Result<(), &str>)` | fn | Reads `Utc::now()`, calls the monitor, and writes `Lost` with `log_error` and `Recovered` with `log_info`. |
 
 - Private types: `State` (`Unknown`, `Up`, `Down { since, failed_polls }`).
-- Tests (planned): first failure, repeated failures counted, recovery with duration and count, silent `Unknown` and `Up` successes, new outage after recovery, `describe` for both links, multi-line error kept on one line, `format_duration`, links independent.
+- Tests (11): first failure, repeated failures counted, recovery with duration and count, silent `Unknown` and `Up` successes, new outage after recovery, `describe` for both links, multi-line error kept on one line, `format_duration`, links independent.
 
 ### log.rs
 

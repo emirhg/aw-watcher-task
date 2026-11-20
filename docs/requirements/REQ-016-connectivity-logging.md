@@ -1,6 +1,6 @@
 # REQ-016: Log connectivity state transitions for the task source and aw-server
 
-- **Status:** Documented, not implemented
+- **Status:** Implemented
 - **Added:** 2026-11-20
 - **Owner:** maintainer
 
@@ -70,14 +70,15 @@ stateDiagram-v2
 
 ## Acceptance criteria
 
-- [ ] A first failure after an `Up` or `Unknown` state logs one ERROR line naming the link and the error.
-- [ ] Repeated failures while `Down` log nothing.
-- [ ] The first success after `Down` logs one INFO line with the outage duration and the number of failed polls.
-- [ ] A success while `Unknown` or `Up` logs nothing.
-- [ ] Both links are reported separately: a task source outage does not change the aw-server state, and the reverse.
-- [ ] The per-poll error line from `resolve_task` is gone.
-- [ ] The state machine is tested without a real clock (`now` is a parameter), and `format_duration` and `describe` are tested.
+- [x] A first failure after an `Up` or `Unknown` state logs one ERROR line naming the link and the error.
+- [x] Repeated failures while `Down` log nothing.
+- [x] The first success after `Down` logs one INFO line with the outage duration and the number of failed polls.
+- [x] A success while `Unknown` or `Up` logs nothing.
+- [x] Both links are reported separately: a task source outage does not change the aw-server state, and the reverse.
+- [x] The per-poll error line from `resolve_task` is gone.
+- [x] The state machine is tested without a real clock (`now` is a parameter), and `format_duration` and `describe` are tested.
 
 ## Code references
 
-- Implemented in: (empty until implemented)
+- Implemented in: `crates/aw-taskwarrior/src/connectivity.rs` (`LinkMonitor`, `observe`, `describe`, `format_duration`; tests in the same module), `crates/aw-taskwarrior/src/providers.rs` (`resolve_task`), `crates/aw-taskwarrior/src/main.rs` (one monitor per link in the poll loop).
+- Checked end to end with the real daemon against a scratch aw-server: a task command failing for 6 s logged one `failing` line and one `recovered after 6s (6 failed polls)` line; an aw-server stopped for 6 s logged one `unreachable` line and one `recovered after 9s (9 failed heartbeats)` line.
