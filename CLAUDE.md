@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Windows build
 
-- Build the Windows executable with `WINDOWS_TOOLCHAIN_BIN=~/.local/share/rust-cross/rustup/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin scripts/build-windows.sh`. Output is `target/windows/x86_64-pc-windows-gnu/release/aw-taskwarrior.exe`.
+- Build the Windows executable with `WINDOWS_TOOLCHAIN_BIN=~/.local/share/rust-cross/rustup/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin scripts/build-windows.sh`. Output is `target/windows/x86_64-pc-windows-gnu/release/aw-watcher-task.exe`.
 - Always use `target/windows` for Windows builds. Never reuse the Linux `target/` for them.
 - Keep the isolated toolchain out of `PATH`. Do not change the system Rust for this.
 - If a change adds Unix-only code (`std::os::unix`, libc, signals, Unix paths), it must also compile for `x86_64-pc-windows-gnu`. Check with the build script before finishing.

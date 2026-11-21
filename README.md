@@ -13,7 +13,7 @@ A standalone Rust daemon that tracks TaskWarrior activity into ActivityWatch, re
 **Build and run:**
 ```bash
 cargo build --release
-./target/release/aw-taskwarrior  # Start the daemon, press Ctrl-C to stop
+./target/release/aw-watcher-task  # Start the daemon, press Ctrl-C to stop
 ```
 
 The daemon will create an ActivityWatch bucket called `aw-watcher-taskwarrior_{your-hostname}` and send heartbeats tracking your active TaskWarrior tasks.
@@ -30,8 +30,10 @@ The daemon will create an ActivityWatch bucket called `aw-watcher-taskwarrior_{y
 
 ```bash
 cargo build --release
-# Binary location: target/release/aw-taskwarrior (3.6 MB, fully optimized)
+# Binary location: target/release/aw-watcher-task (3.6 MB, fully optimized)
 ```
+
+The Cargo package is still named `aw-taskwarrior`; the executable it builds is `aw-watcher-task` (REQ-017).
 
 **Optional: Install to PATH**
 
@@ -39,18 +41,18 @@ For easier access, copy the binary to a directory on your `$PATH`:
 ```bash
 # Option 1: Copy to ~/.local/bin (personal user binaries)
 mkdir -p ~/.local/bin
-cp target/release/aw-taskwarrior ~/.local/bin/
+cp target/release/aw-watcher-task ~/.local/bin/
 
 # Option 2: Copy to /usr/local/bin (system-wide, requires sudo)
-sudo cp target/release/aw-taskwarrior /usr/local/bin/
+sudo cp target/release/aw-watcher-task /usr/local/bin/
 
 # Option 3: Create a symlink (keeps the binary in the repo)
-ln -s $(pwd)/target/release/aw-taskwarrior ~/.local/bin/aw-taskwarrior
+ln -s $(pwd)/target/release/aw-watcher-task ~/.local/bin/aw-watcher-task
 ```
 
 Then you can run the daemon from anywhere:
 ```bash
-aw-taskwarrior
+aw-watcher-task
 ```
 
 ### Building for Windows 11 (cross-compiling from Linux)
@@ -65,7 +67,7 @@ Prerequisites:
 ```bash
 WINDOWS_TOOLCHAIN_BIN=~/.local/share/rust-cross/rustup/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin \
   scripts/build-windows.sh
-# Output: target/windows/x86_64-pc-windows-gnu/release/aw-taskwarrior.exe
+# Output: target/windows/x86_64-pc-windows-gnu/release/aw-watcher-task.exe
 ```
 
 The script checks the linker and the Windows standard library first. Its build directory (`target/windows`) is separate from the Linux build. The Windows binary imports only Windows system DLLs.
@@ -75,7 +77,7 @@ The script checks the linker and the Windows standard library first. Its build d
 - If `aw-taskwarrior.toml` does not exist, the daemon creates it on first run (see [Configuration](#configuration)).
 - The `task` command must be `task.exe` on `PATH`.
 - Stop the daemon with Ctrl+C.
-- aw-qt finds `aw-taskwarrior.exe` by name if it is on `PATH` or in the folder aw-qt searches.
+- aw-qt finds `aw-watcher-task.exe` by name if it is on `PATH` or in the folder aw-qt searches.
 
 This was tested by building the Windows test binaries and running them under Wine. It has not been run on a real Windows 11 machine.
 
@@ -212,7 +214,7 @@ Unknown keys in `[aw-taskwarrior]` are rejected at startup. In particular, `aw_s
 ## Running
 
 ```bash
-./target/release/aw-taskwarrior
+./target/release/aw-watcher-task
 ```
 
 The daemon will:
@@ -235,20 +237,20 @@ The daemon will:
 
 **Running in the background:**
 ```bash
-./target/release/aw-taskwarrior &  # Run in background
+./target/release/aw-watcher-task &  # Run in background
 # or
-nohup ./target/release/aw-taskwarrior > /tmp/aw-taskwarrior.log 2>&1 &
+nohup ./target/release/aw-watcher-task > /tmp/aw-taskwarrior.log 2>&1 &
 ```
 
 ## Integration with aw-qt
 
 1. Build the binary and place on `$PATH` (e.g., `~/.local/bin/`)
-2. Start aw-qt, which auto-discovers `aw-taskwarrior` via naming convention
+2. Start aw-qt, which auto-discovers `aw-watcher-task` via naming convention
 3. Start manually from aw-qt's UI, or add to `autostart_modules` in `~/.config/activitywatch/aw-qt/aw-qt.toml`:
 
 ```toml
 [aw-qt]
-autostart_modules = ["aw-server", "aw-watcher-afk", "aw-watcher-window", "aw-taskwarrior"]
+autostart_modules = ["aw-server", "aw-watcher-afk", "aw-watcher-window", "aw-watcher-task"]
 ```
 
 ## Testing
@@ -310,7 +312,7 @@ Cargo workspace; all commands run from the repository root.
 **"Bucket aw-watcher-taskwarrior_... ready" but no heartbeats showing in ActivityWatch**
 - Ensure ActivityWatch server is actually running: `curl http://localhost:5600/api/0/info`
 - Check that the daemon is polling TaskWarrior: `task +ACTIVE export` should show your active tasks
-- Verify the daemon isn't crashing silently by running it in foreground: `./target/release/aw-taskwarrior`
+- Verify the daemon isn't crashing silently by running it in foreground: `./target/release/aw-watcher-task`
 
 **"task provider 'cli' failed, reusing last known task" in logs**
 - TaskWarrior binary not found or not in `$PATH`
@@ -330,9 +332,9 @@ Cargo workspace; all commands run from the repository root.
 - Check network: `ping localhost` and `curl -I http://localhost:5600/api/0/info`
 
 **Daemon exits immediately without error**
-- Check if already running: `pgrep -a aw-taskwarrior`
-- Kill any existing daemon: `pkill aw-taskwarrior`
-- Run in foreground to see error messages: `./target/release/aw-taskwarrior`
+- Check if already running: `pgrep -a aw-watcher-task`
+- Kill any existing daemon: `pkill aw-watcher-task`
+- Run in foreground to see error messages: `./target/release/aw-watcher-task`
 
 ## Known Limitations
 

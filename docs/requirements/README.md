@@ -20,5 +20,6 @@ Each requirement has its own file, written from [_template.md](_template.md). Wr
 | [REQ-014](REQ-014-config-location-and-first-run.md) | Windows config location and first-run config file | Implemented |
 | [REQ-015](REQ-015-idle-task-title.md) | Configurable title for idle periods, empty by default (no heartbeat) | Implemented |
 | [REQ-016](REQ-016-connectivity-logging.md) | Log connectivity state transitions for the task source and aw-server | Implemented |
+| [REQ-017](REQ-017-binary-name.md) | Name the executable `aw-watcher-task` (package stays `aw-taskwarrior`) | Documented, not implemented |
 
 Status is mirrored in [../STATUS.md](../STATUS.md).

@@ -27,6 +27,7 @@ Rules:
 | REQ-014 | Windows config location and first-run config file | Implemented | Implemented | In sync |
 | REQ-015 | Configurable title for idle periods, empty by default | Implemented | Implemented | In sync |
 | REQ-016 | Log connectivity state transitions for the task source and aw-server | Implemented | Implemented | In sync |
+| REQ-017 | Name the executable `aw-watcher-task` | Documented | Not implemented | Docs ahead |
 
 ## Known code issues (not requirements)
 

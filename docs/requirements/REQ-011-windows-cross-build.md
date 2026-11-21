@@ -13,7 +13,7 @@ The daemon is used on Windows 11 as well as Linux. Building the Windows binary o
 ### Target
 
 - Rust target triple `x86_64-pc-windows-gnu`, which links with the MinGW-w64 toolchain. Windows 11 runs the result natively.
-- Output: `target/windows/x86_64-pc-windows-gnu/release/aw-taskwarrior.exe`.
+- Output: `target/windows/x86_64-pc-windows-gnu/release/aw-watcher-task.exe` (named `aw-taskwarrior.exe` until REQ-017).
 - A separate target directory (`target/windows`) keeps the Windows build apart from the Linux build cache in `target/`.
 
 ### Prerequisites
@@ -37,7 +37,7 @@ The distribution Rust package (Arch `rust`) does not ship the Windows standard l
 - Settings are read from `dirs::config_dir()`, which is `%APPDATA%` on Windows: `%APPDATA%\activitywatch\aw-client\aw-client.toml` and `%APPDATA%\activitywatch\aw-taskwarrior\aw-taskwarrior.toml`. Check that ActivityWatch for Windows uses the same folder for `aw-client.toml`.
 - The `task` command must be `task.exe` on `PATH`.
 - Ctrl+C stops the daemon. SIGTERM does not exist on Windows.
-- aw-qt discovers `aw-*` executables by name. Place `aw-taskwarrior.exe` where aw-qt looks for it, or on `PATH`.
+- aw-qt discovers `aw-*` executables by name. Place `aw-watcher-task.exe` where aw-qt looks for it, or on `PATH`.
 
 ## Verification and limits
 
@@ -52,7 +52,7 @@ Not verified: a run on a real Windows 11 machine, autostart from aw-qt, and the 
 
 ## Acceptance criteria
 
-- [x] `scripts/build-windows.sh` produces `aw-taskwarrior.exe` on a Linux machine with the prerequisites.
+- [x] `scripts/build-windows.sh` produces the Windows executable on a Linux machine with the prerequisites (`aw-taskwarrior.exe` when verified on 2026-11-06; `aw-watcher-task.exe` after REQ-017).
 - [x] The Linux build and tests still pass, and the Linux `target/` cache is not invalidated by the Windows build (separate `target/windows`).
 - [x] The import list has no MinGW runtime DLLs.
 - [x] The Windows build is documented in the README, with the runtime notes above.

@@ -1,12 +1,12 @@
 # Modules
 
-The repository is a Cargo workspace (`crates/*`) with four crates. The watcher binary (`aw-taskwarrior`) contains five modules. The provider crate and the core crate hold the task-source logic and the shared interface.
+The repository is a Cargo workspace (`crates/*`) with four crates. The watcher (package `aw-taskwarrior`, executable `aw-watcher-task`) contains five modules. The provider crate and the core crate hold the task-source logic and the shared interface.
 
 ## Crate dependency graph
 
 ```mermaid
 flowchart TD
-    watcher[aw-taskwarrior<br/>watcher binary] --> core[aw-taskwarrior-core]
+    watcher[aw-taskwarrior<br/>binary: aw-watcher-task] --> core[aw-taskwarrior-core]
     watcher -. feature provider-cli, default .-> cli[aw-taskwarrior-provider-cli]
     watcher -. feature provider-http, default .-> http[aw-taskwarrior-provider-http]
     cli --> core
