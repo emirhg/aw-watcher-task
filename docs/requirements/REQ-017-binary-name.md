@@ -1,6 +1,6 @@
 # REQ-017: Name the executable aw-watcher-task
 
-- **Status:** Documented, not implemented
+- **Status:** Implemented
 - **Added:** 2026-11-20
 - **Owner:** maintainer
 
@@ -37,12 +37,12 @@ The owner wants the executable to be called `aw-watcher-task`, so the file that 
 
 ## Acceptance criteria
 
-- [ ] `cargo build -p aw-taskwarrior` produces `target/debug/aw-watcher-task`.
-- [ ] `cargo build --release -p aw-taskwarrior` produces `target/release/aw-watcher-task`.
-- [ ] `scripts/build-windows.sh` produces `aw-watcher-task.exe` in `target/windows/x86_64-pc-windows-gnu/release/`.
-- [ ] The daemon with a scratch config folder starts and finds the config under `aw-taskwarrior/`, so existing settings still apply.
-- [ ] README, CLAUDE.md, REQ-011 and `docs/modules.md` name `aw-watcher-task` for the executable and keep the package name `aw-taskwarrior`.
+- [x] `cargo build -p aw-taskwarrior` produces `target/debug/aw-watcher-task`.
+- [x] `cargo build --release -p aw-taskwarrior` produces `target/release/aw-watcher-task`.
+- [x] `scripts/build-windows.sh` produces `aw-watcher-task.exe` in `target/windows/x86_64-pc-windows-gnu/release/`.
+- [x] The daemon with a scratch config folder starts and finds the config under `aw-taskwarrior/`, so existing settings still apply.
+- [x] README, CLAUDE.md, REQ-011 and `docs/modules.md` name `aw-watcher-task` for the executable and keep the package name `aw-taskwarrior`.
 
 ## Code references
 
-- Implemented in: (empty until implemented)
+- Implemented in: `crates/aw-taskwarrior/Cargo.toml` (`[[bin]] name = "aw-watcher-task"`), `scripts/build-windows.sh` (output name). Checked: debug and release builds, Windows build with system-DLL-only imports, and a scratch-config start of the release binary.

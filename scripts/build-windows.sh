@@ -7,7 +7,7 @@
 #                          x86_64-pc-windows-gnu standard library (optional;
 #                          defaults to the cargo and rustc on PATH).
 #
-# Output: target/windows/x86_64-pc-windows-gnu/release/aw-taskwarrior.exe
+# Output: target/windows/x86_64-pc-windows-gnu/release/aw-watcher-task.exe
 set -euo pipefail
 
 TARGET=x86_64-pc-windows-gnu
@@ -40,5 +40,5 @@ fi
 cd "$REPO"
 cargo build --release --target "$TARGET" --target-dir target/windows -p aw-taskwarrior "$@"
 
-OUT="target/windows/$TARGET/release/aw-taskwarrior.exe"
+OUT="target/windows/$TARGET/release/aw-watcher-task.exe"
 echo "built: $REPO/$OUT"

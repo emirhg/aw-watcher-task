@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [[bin]]
-name = "aw-taskwarrior"
+name = "aw-watcher-task"
 path = "src/main.rs"
 
 [features]
